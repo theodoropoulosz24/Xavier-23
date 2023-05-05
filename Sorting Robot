@@ -1,0 +1,278 @@
+#include <kipr/wombat.h>
+int swipe_servo_port=2; // the servo port 2 is devoted to the swiping mechanism on the bottom of the robot.
+int clap_servo_port=1; // the servo port 1 is devoted to the clamping/clapping mechanism on the top of the robot.
+int l_motor=0; // motor port 0 is devoted to the left wheel motor
+int r_motor=3; // motor port 3 is devoted to the right wheel motor
+int distance_sensor=2; // the distance sensor is attached to the analog port 2
+int right_line_sensor=5; // the right light sensor is attached to the analog port 5
+int left_line_sensor=0; // the left light sensor is attached to the analog port 0
+int swipe_right_max=1686; // the most that the swiping mechanism should move to the right is 1686
+int swipe_left_min=460; // the least that the swiping mechanism should move to the left is 453
+int clap_max_close=1400; // the maximum the clapping mechanism should close is 1300
+int clap_min_open=600; // the minimum the clapping mechanism should open is 600
+int infra_black=4000; // this is the number the infra sensors detect when looking at black
+int infra_white=3600; // this is the number the infra sensors detect when 
+int infra_grey=3800;
+int swipe_counter=0;
+int detect=1600;
+int swipe_slow=0;
+int time_counter=0;
+void swipe();
+void forward(int a);
+void backwards(int a);
+void turn_right(int a);
+void turn_left(int a);
+void forward_turn_right(int a);
+void forward_turn_left(int a);
+void back_turn_right(int a);
+void back_turn_left(int a);
+void spin(int a);
+void anti_spin(int a);
+
+
+int main()
+{
+shut_down_in(120.0);
+     // To set up, put at approx 45 degree angle from corner, such that if it were to go forward, it would collect both red and green poms.
+    enable_servos(); 
+    set_servo_position(clap_servo_port,clap_min_open);
+    msleep(300);
+    
+    set_servo_position(swipe_servo_port,(swipe_left_min+swipe_right_max)/2); // for consistency's sake, we want it to start with the swiper in the middle.
+    msleep(400); // while the bot is not seeing black it goes forward
+    ao();
+    while(analog(right_line_sensor)<infra_grey ){
+        forward(1);
+    }
+    while(analog(right_line_sensor)>infra_grey){
+        forward(1);
+    }
+    ao();
+    set_servo_position(swipe_servo_port,(swipe_right_max)); // so that when you turn right you can take the next pom in the right sorted place.
+    //We are now online and ready to sort pom.
+    spin(2050);
+    ao();
+    while(swipe_counter<6){
+        if(analog(distance_sensor)>detect){
+
+            forward(700);
+            ao();
+        swipe();
+            printf("Swipe");
+forward(300);
+            
+        }
+        
+        if(analog(left_line_sensor)>infra_grey && swipe_counter !=4){
+            printf("turn right");
+            forward_turn_left(1);
+            
+        } else if(analog(left_line_sensor)<infra_grey){
+            printf("turn left");
+            forward_turn_right(1);
+        } else{
+        forward(1);
+        }
+    } // Hopefully swipes till reaches the 4 piles
+    
+    while(swipe_counter<12){
+        printf("On to the big piles");
+        if(analog(distance_sensor)>detect){
+            forward(800);
+            ao();
+            set_servo_position(clap_servo_port,clap_max_close);
+            msleep(500);
+        swipe();
+            set_servo_position(clap_servo_port,clap_min_open); // Hold top pom, swipe underneath, let go of top pom, swipe back, then swipe again.
+            msleep(500);
+            swipe();
+            swipe();
+            forward(300);
+        }
+        if(analog(right_line_sensor)<infra_grey ){
+            printf("turn right");
+            forward_turn_left(1);
+            
+        } else if(analog(left_line_sensor)<infra_grey){
+            printf("turn left");
+            forward_turn_right(1);
+        } else{
+        forward(1);
+        }
+        
+    } 
+    
+    //Poms should be sorted and ready to be deposited anywhere.
+    ao();
+    set_servo_position(clap_servo_port,clap_max_close);
+    msleep(500);
+    swipe();
+    msleep(1000);
+    anti_spin(500);
+    ao();
+    forward(200);
+    ao();
+    anti_spin(500);
+    ao();
+    forward(200);
+    ao();
+    anti_spin(500);
+    ao();
+    forward(200);
+    ao();
+    while(analog(left_line_sensor)<infra_grey){
+    anti_spin(1);
+    }
+    ao();
+    forward(100);
+    while(analog(right_line_sensor)<infra_grey){
+    if(analog(left_line_sensor)>infra_grey){
+        forward_turn_right(1);
+        } else if(analog(left_line_sensor)<infra_grey){
+        forward_turn_left(1);
+        } else{
+            forward(1);
+        }
+    }
+    ao(); 
+    
+    // it passed the big black line in the center of the board
+    mav(0,3600);
+    mav(3,3600);
+    msleep(300);
+    ao();
+    while(analog(left_line_sensor)<infra_grey){
+        turn_left(1);
+    }
+    while(analog(left_line_sensor)>infra_grey){
+        turn_left(1);
+    }
+    while(analog(right_line_sensor)>infra_grey){
+        turn_left(1);
+    }
+    turn_left(300);
+    ao();
+    forward(2000);
+    ao();
+    backwards(500);
+    ao();
+    set_servo_position(clap_servo_port,clap_min_open);
+    backwards(500);
+    ao();
+    set_servo_position(clap_servo_port,clap_max_close);
+    while(analog(right_line_sensor)<infra_grey){
+        backwards(1);
+    }
+    backwards(100);
+    while(analog(right_line_sensor)>infra_grey){
+        backwards(1);
+    }
+    backwards(100);
+    while(analog(right_line_sensor)<infra_grey){
+        backwards(1);
+    }
+    backwards(100);
+    while(analog(right_line_sensor)>infra_grey){
+        backwards(1);
+    }
+    backwards(100);
+    while(analog(left_line_sensor)<infra_grey){
+        if(analog(right_line_sensor)<infra_grey){
+            forward_turn_right(1);
+        } 
+        else if(analog(right_line_sensor)>infra_grey){
+            forward_turn_left(1);
+        } else {
+            forward(1);
+        }
+    }
+    forward(2500);
+    ao();
+    swipe();
+    msleep(500);
+    backwards(500);
+    ao();
+    set_servo_position(clap_servo_port,clap_min_open);
+    backwards(500);
+    ao();
+    set_servo_position(clap_servo_port,clap_max_close);
+    turn_left(500);
+    ao();
+    backwards(2000);
+    return 0;
+}
+void backwards(int a)
+{
+motor(r_motor,-40);
+    motor(l_motor,-40);
+    msleep(a); // a variable forward command, so that we don't have to have too many variables.
+}
+void forward(int a)
+{
+motor(r_motor,40);
+    motor(l_motor,40);
+    msleep(a); // a variable forward command, so that we don't have to have too many variables.
+}
+void turn_right(int a)
+{
+    motor(l_motor,40);
+    msleep(a);
+}
+void turn_left(int a)
+{
+    motor(r_motor,40);
+    msleep(a);
+}
+void forward_turn_right(int a)
+{
+    motor(l_motor,40);
+    motor(r_motor,20);
+    msleep(a); // variable turn right command.
+}
+
+void back_turn_right(int a)
+{
+    motor(r_motor,-40);
+    msleep(a); // variable turn right command.
+}
+void back_turn_left(int a)
+{
+    motor(l_motor,-40);
+    msleep(a); // variable turn right command.
+}
+void spin(int a){
+    mav(r_motor,-750);
+    mav(l_motor,750);
+    msleep(a);
+}
+void anti_spin(int a){
+    mav(r_motor,750);
+    mav(l_motor,-750);
+    msleep(a);
+}
+void forward_turn_left(int a)
+{
+    motor(l_motor,20);
+    motor(r_motor,40);
+    msleep(a); // variable turn right command.
+}
+
+void swipe()
+{
+if(swipe_counter%2==1){
+        swipe_slow=swipe_left_min;
+        while(swipe_slow<swipe_right_max){
+            set_servo_position(swipe_servo_port,swipe_slow+10);
+            swipe_slow+=10;
+            msleep(10);
+        }
+    } else {
+        swipe_slow=swipe_right_max;
+        while(swipe_slow>swipe_left_min){
+            set_servo_position(swipe_servo_port,swipe_slow-10);
+            swipe_slow-=10;
+            msleep(10);
+        }
+    }
+    swipe_counter++;
+}
