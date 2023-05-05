@@ -1,0 +1,819 @@
+#include <kipr/wombat.h>
+// 70/81 is the motor ratio
+
+//variables 
+int counter_veer_power = 58.5;
+int maxpower = 70;
+int tmotion = 500;
+int tpower = 30;
+int power = 50;
+int motion = 1000;
+int left_motor = 3;
+int right_motor = 0;
+int vrange = 1600;//vsensor range for the pipe with the switch
+int hook_range = 2500;//vsensor range when turning right to set up the hook prep
+int wall_range = 3550; //range for side pipe
+int cup_range = 3700; //range for circle on elevator
+int vrange_v2 = 2400; //vsensor for the cup
+int key_range = 3600; //vsensor range for the keys
+int vsensor = 1;
+int pipe_hat = 2;
+int pipe_hat_v2 =4; //top hat sensor to detect the circle
+int waiting = 130;
+int counter=0;
+int srange=2000;
+int ssensor=2;
+int shadow_counter= 0;
+int count_o = 0;
+int count_g = 0;
+int count_b = 0;
+int countmax = 5;
+int checker = 0;
+int count_n = 0;
+int d_motion = 3400;
+int lift_reset = 324;
+int opening_reset = 460;
+int twist_reset = 620;
+int E_lower = 1640; //bottom part of elevator
+int Tier_one = 1125; //first level elevator lift
+int circle_hook = 1465;
+int Tier_two = 610; //second level elevator lift
+int Tier_three= 120; //third level elevator lift
+int Top_key = 1139; //high encription key
+int Middle_key = 1200;// middle encription key
+int bottom_key = 1200;
+int e_hook = 295; //hooking at start
+int t_lift=100;
+int unclamp= 700; //servo value after we get ring to top stage
+
+
+
+
+
+//define functions
+void circle_hook_prep_finish();
+void super_right();
+void right_turn();
+void reset();
+void start_claw_opening();
+void start_claw_lift();
+void elevator_prep();
+void tier_one_lift();
+void tier_two_lift();
+void tier_three_lift();
+void top_encryption_lift();
+void middle_encryption_lift();
+void constant_backwards();
+
+void s_right_turn();
+void elevator_hook_prep();
+void wait();
+void wall_align();
+void backwards();
+void left_turn();
+void pipe_alignment();
+void pipe_turn();
+void start_pipe_alignment();
+void starting_black_line();
+void e_left_turn();
+void s_e_left_turn();
+void elevator_shimmy();
+void tower_lift();
+void left_veer();
+void right_veer();
+void s_backwards();
+void circle_hook_prep();
+void key_positioning_high();
+void key_positioning_low();
+void key_positioning_middle();
+void key_clamp();
+void key_turn();
+void circle_backwards();
+void hooked_backwards();
+void placing_hook_turn();
+void mini_circle_backwards();
+void mini_hooked_backwards();
+void start_key_left();
+void low_encryption_lift();
+void key_left_turn();
+void align_back_pipe();
+void pipe_check_left();
+void pipe_check_backwards();
+void align_key_left_turn();
+void key_backwards();
+void back_pipe_align_part_two ();
+
+
+//forward functions
+void circle_forward(); // if
+void constant_forwards(); // foreba
+void s_forward(); // 45
+void forward(); // 200
+void pipe_forward(); // 
+void key_forward(); // 
+void very_small_forward(); // 20
+void decently_small_forward(); // it was 260 before
+void super_constant_forwards();
+void super_key_forward();
+
+int main()
+{
+ tower_lift(); //reset 
+    wait(); //waiti
+    right_turn();
+   wait();
+start_pipe_alignment();
+    wait();
+    circle_forward();
+    wait();
+    s_backwards();
+    counter=0;
+   
+    elevator_prep();
+    wait();
+    elevator_hook_prep();
+    wait();
+    decently_small_forward();
+    wait();
+    circle_backwards();
+    wait();
+    placing_hook_turn();
+    wait();
+    very_small_forward();//there was an sright turn after this 
+    wait();
+     circle_hook_prep();
+    wait();
+     hooked_backwards();
+    wait();
+    s_forward();
+    wait();
+    elevator_shimmy(); //code for the whole elevator process after its hooked
+    mini_hooked_backwards();
+    wait();
+    circle_hook_prep_finish();
+    wait();
+    mini_hooked_backwards();
+    wait();
+    tower_lift();
+    align_back_pipe();
+  //start the keys
+    super_key_forward();
+    wait();
+    key_backwards();
+    back_pipe_align_part_two();
+    key_positioning_low();
+    wait();
+    key_positioning_middle();
+    wait();
+    key_positioning_high();
+    wait();
+    key_positioning_high();
+    wait();
+    key_positioning_middle();
+    wait();
+    key_positioning_low();
+    
+    
+    
+ 
+    
+    return 0;
+    
+}
+
+void starting_black_line ()
+{
+      while (counter<1) //This section is for getting donuts next to horizontal pipe
+ {    
+   while (analog(ssensor)<= srange) // Go forwards while not sensing the black line
+    {       
+        constant_forwards();
+   }
+    if (analog(ssensor) >= srange)
+        {
+        backwards();
+            counter=counter+1; //add one to the counter when a black line is sensed
+        }
+        }   
+}
+
+void start_key_left ()
+{    
+motor (left_motor, -30);
+motor (right_motor, maxpower);
+    msleep(1100);
+    ao();
+}
+
+void super_right ()
+{    
+motor (left_motor, 60);
+motor (right_motor, 0);
+}
+
+void hook_right ()
+{    
+motor (left_motor, 10);
+motor (right_motor, 0);
+}
+
+void wall_align ()
+{   
+while (counter<1)
+{
+super_right();
+   if (digital (1)==1) 
+   {
+   ao();
+       counter=counter+1;
+   } 
+    
+}
+    
+}
+
+
+void s_forward ()
+{
+motor (left_motor, power);
+motor (right_motor, counter_veer_power);
+msleep(30);
+    ao();
+}
+
+void very_small_forward ()
+{
+motor (left_motor, power);
+motor (right_motor, counter_veer_power);
+msleep(20);
+    ao();
+}
+
+void decently_small_forward ()
+{
+motor (left_motor, power);
+motor (right_motor, counter_veer_power);
+msleep(380);
+    ao();
+}
+
+void pipe_forward ()
+{
+motor (left_motor, power);
+motor (right_motor, counter_veer_power);
+msleep(2420);
+    ao();
+}
+
+void forward ()
+{
+motor (left_motor, power);
+motor (right_motor, counter_veer_power);
+}
+
+
+void s_right_turn ()
+{
+motor (left_motor, tpower);
+motor (right_motor, 0);
+msleep(50);
+    ao();
+}
+
+void right_turn ()
+{
+motor (left_motor, 70);
+motor (right_motor, 0);
+ msleep(2200);
+    ao();
+}
+
+void left_turn ()
+{
+motor (left_motor, 0);
+motor (right_motor, power);
+    ao();
+}
+
+void align_key_left_turn ()
+{
+motor (left_motor, -20);
+motor (right_motor, 70);
+    msleep(3000);
+    ao();
+}
+
+void align_back_pipe ()
+{
+pipe_check_left();
+pipe_check_backwards();
+}
+
+void pipe_check_left ()
+{
+motor (left_motor, -power);
+motor (right_motor, counter_veer_power);
+    msleep(1200);
+    ao();
+}
+
+void pipe_check_backwards()
+{
+motor (left_motor, -80);
+motor (right_motor, -90);
+    msleep(2000);
+    ao();
+}
+
+void pipe_check_left_part_two ()
+{
+motor (left_motor, -power);
+motor (right_motor, counter_veer_power);
+    msleep(2100);
+    ao();
+}
+
+void pipe_check_backwards_part_two()
+{
+motor (left_motor, -80);
+motor (right_motor, -90);
+    msleep(4000);
+    ao();
+}
+
+void back_pipe_align_part_two ()
+{
+pipe_check_left_part_two();
+pipe_check_backwards_part_two();
+
+}
+
+void key_left_turn ()
+{
+motor (left_motor, 0);
+motor (right_motor, power);
+    msleep(2300);
+    ao();
+}
+
+void e_left_turn ()
+{
+motor (left_motor, 0);
+motor (right_motor, 45);
+    msleep(3000); //2898 b4
+    ao();
+}
+
+void reset () 
+{
+    start_claw_opening();
+    start_claw_lift();
+}
+
+void start_claw_lift ()
+{
+   enable_servos();
+	set_servo_position(0, lift_reset);
+	msleep(500);
+    disable_servos();
+}
+
+void start_claw_opening ()
+{
+   enable_servos();
+	set_servo_position(1, opening_reset);
+	msleep(500);
+    disable_servos();
+}
+
+void key_clamp ()
+{
+   enable_servos();
+	set_servo_position(1, opening_reset);
+	msleep(500);
+    set_servo_position (1,600);
+    msleep(500);
+    disable_servos();
+}
+
+void elevator_prep ()
+{
+    enable_servos();
+    set_servo_position(0,300);
+	msleep(200);
+     set_servo_position(0,700);
+	msleep(200);
+     set_servo_position(0,1200);
+	msleep(200);
+     set_servo_position(0,1300);
+	msleep(200);
+    set_servo_position(0,1400);
+	msleep(200);
+     set_servo_position(0,1500);
+	msleep(200);
+     set_servo_position(0,1600);
+	msleep(200);
+	set_servo_position(0,E_lower);
+	msleep(200);
+    disable_servos();
+}
+
+void elevator_hook_prep ()
+{
+    enable_servos();
+	set_servo_position(1,e_hook);
+	msleep(500);
+    disable_servos();
+}
+
+void circle_hook_prep ()
+{
+    enable_servos();
+    set_servo_position(1,700);
+	msleep(500);
+    set_servo_position(1,1000);
+	msleep(500);
+    set_servo_position(1,1300);
+	msleep(500);
+    set_servo_position(1,circle_hook);
+	msleep(500);
+    disable_servos();
+}
+void circle_hook_prep_finish()
+{
+	enable_servos();
+    set_servo_position(1,unclamp);
+    msleep(500);
+    disable_servos();
+}
+
+void circle_hook_check ()
+{
+    enable_servos();
+	set_servo_position(1,1650);
+	msleep(500);
+    disable_servos();
+}
+
+void tier_one_lift ()
+{
+    enable_servos();
+	set_servo_position(0, Tier_one);
+	msleep(500); 
+    set_servo_position(0,1400);
+	msleep(500);
+    set_servo_position(0, Tier_one);
+	msleep(300);
+    disable_servos();
+}
+
+void tier_two_lift ()
+{
+    enable_servos();
+	set_servo_position(0, Tier_two);
+	msleep(500);
+    disable_servos();
+}
+
+void tier_three_lift ()
+{
+    enable_servos();
+	set_servo_position(0, Tier_three);
+	msleep(500);
+    disable_servos();
+}
+
+void top_encryption_lift ()
+    {
+    enable_servos();
+	set_servo_position(0, Top_key);
+	msleep(500);
+    disable_servos();
+}
+
+void low_encryption_lift ()
+    {
+    enable_servos();
+	set_servo_position(0, bottom_key);
+	msleep(500);
+    disable_servos();
+}
+    
+void mid_encryption_lift ()
+    {
+    enable_servos();
+	set_servo_position(0, Middle_key);
+	msleep(500);
+    disable_servos();
+}
+
+void tower_lift ()
+    {
+    enable_servos();
+	set_servo_position(0, t_lift);
+	msleep(500);
+    disable_servos();
+}
+
+void left_veer ()
+{
+motor (left_motor, -5);
+motor (right_motor, tpower); //285 msleep
+    ao();
+}
+
+void right_veer ()
+{
+motor (left_motor, 40);
+motor (right_motor, 0);  //310 msleep
+    ao();
+}
+
+void circle_forward ()
+{
+while (analog(pipe_hat_v2)>cup_range)
+{
+constant_forwards();
+    if (analog(pipe_hat_v2)<cup_range)
+    {
+        backwards();
+    }
+    if (analog(pipe_hat)<3380) //3490
+    {
+    left_veer();
+    }
+     if (analog(pipe_hat)>3555) //3500
+    {
+    right_veer();
+    }
+}
+    ao();
+    }
+
+void key_forward ()
+{
+while (digital(1)==0)
+{
+constant_forwards();
+   if (digital (1)==1) 
+   {
+   ao();       
+   }     
+}   
+}
+
+void super_key_forward ()
+{
+while (digital(1)==0)
+{
+super_constant_forwards();
+   if (digital (1)==1) 
+   {
+   ao();       
+   }     
+}   
+}
+
+void constant_forwards ()
+{
+motor (left_motor, power);
+motor (right_motor, counter_veer_power);
+}
+
+void super_constant_forwards ()
+{
+motor (left_motor, 86.4);
+motor (right_motor, 100);
+}
+
+void constant_backwards ()
+{
+motor (left_motor, -power);
+motor (right_motor, -power);
+}
+
+void backwards ()
+{
+motor (left_motor, -power);
+motor (right_motor, -power);
+    msleep(200);
+    ao();
+}
+
+void s_backwards ()
+{
+motor (left_motor, -45);
+motor (right_motor, -power);
+    msleep(2690);
+    ao();
+}
+
+void key_backwards ()
+{
+motor (left_motor, -45);
+motor (right_motor, -power);
+    msleep(550);
+    ao();
+}
+
+void circle_backwards ()
+{
+motor (left_motor, 40);
+motor (right_motor, -90);
+    msleep(440); //was 450
+    ao();
+}
+
+void mini_circle_backwards ()
+{
+motor (left_motor, 25);
+motor (right_motor, -65);
+    msleep(200);
+    ao();
+}
+
+void hooked_backwards ()
+{
+motor (left_motor, -power);
+motor (right_motor, -power);
+    msleep(1300);
+    ao();
+}
+
+void mini_hooked_backwards ()
+{
+motor (left_motor, -power);
+motor (right_motor, -power);
+    msleep(500);
+    ao();
+}
+
+void wait()
+{
+msleep(waiting);
+    ao();
+}
+
+
+
+void pipe_turn()
+{
+motor (left_motor, 0);
+motor (right_motor, power);
+    msleep(900);
+    ao();
+}
+
+void  pipe_alignment()  
+{
+while (analog(vsensor)<vrange)
+{
+constant_forwards();
+    if (analog(vsensor)>vrange)
+    {
+        constant_backwards();
+    }
+}
+    ao();
+}
+
+void  start_pipe_alignment()  
+{
+while (analog(pipe_hat)>wall_range)
+{
+super_right();
+    if (analog(pipe_hat)<wall_range)
+    {
+        left_turn();
+    }
+}
+    ao();
+}
+
+void  placing_hook_turn()  
+{
+while (analog(pipe_hat)>hook_range)
+{
+hook_right();
+    if (analog(pipe_hat)<hook_range)
+    {
+        left_turn();
+    }
+}
+    ao();
+}
+
+void s_e_left_turn ()
+{
+motor (left_motor, 0);
+motor (right_motor, 45);
+    msleep(300);
+    ao();
+}
+
+void elevator_shimmy()
+{
+tier_one_lift();
+    wait();
+    e_left_turn();
+    s_forward();
+    s_e_left_turn();
+    wait();
+    mini_hooked_backwards();
+    wait();
+    very_small_forward();
+    tier_two_lift();
+   wait();
+    e_left_turn();
+    s_e_left_turn();
+    wait();
+    s_forward();
+    wait();
+    tier_three_lift();
+    wait();
+ e_left_turn();
+    wait();
+    s_forward();
+    
+}
+
+void key_positioning_middle ()
+{
+while (analog(vsensor)<vrange)
+{
+constant_forwards();
+    if (analog(vsensor)>vrange)
+    {
+        key_turn();
+        wait();
+        key_forward();
+        wait();
+        mid_encryption_lift();
+        wait();
+        s_backwards();
+        tower_lift();
+        align_key_left_turn();
+        
+        
+    }
+}
+    ao();
+}
+
+void key_positioning_high ()
+{
+while (analog(vsensor)<vrange)
+{
+constant_forwards();
+    if (analog(vsensor)>vrange)
+    {
+        
+        key_turn();
+        wait();
+        key_forward();
+        wait();
+        top_encryption_lift();
+        wait();
+        s_backwards();    
+        tower_lift();
+        align_key_left_turn();
+        
+    }
+}
+    ao();
+}
+
+void key_positioning_low ()
+{
+while (analog(vsensor)<vrange)
+{
+constant_forwards();
+    if (analog(vsensor)>vrange)
+    {
+        key_turn();
+        wait();
+        key_forward();
+        wait();
+        low_encryption_lift();
+        wait();
+        s_backwards();
+        tower_lift();
+        align_key_left_turn();
+        
+    }
+}
+    ao();
+}
+
+
+void key_turn ()
+{
+motor (left_motor,70);
+    motor(right_motor,-35);
+    msleep(3000);
+    ao();
+}
+
+
+
+
